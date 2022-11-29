@@ -9,7 +9,8 @@ import Checkout from './Checkout';
 const Cart = (props) => {
   const ctx = useContext(CartContext);
   const [isCheckout, setIsCheckout] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [didSubmit, setDidSubmit] = useState(false);
   const totalAmount = `$${ctx.totalAmount.toFixed(2)}`;
   const hasItems = ctx.items.length > 0;
 
@@ -26,14 +27,20 @@ const Cart = (props) => {
     setIsCheckout(true);
   }
 
-  const sumbitOrderHandler = (userData) => {
-    fetch('https://react-http-d2b79-default-rtdb.firebaseio.com/react-http-d2b79/orders.json', {
+  const sumbitOrderHandler = async (userData) => {
+    setIsSubmitting(true);
+
+    await fetch('https://react-http-d2b79-default-rtdb.firebaseio.com/react-http-d2b79/orders.json', {
       method: 'POST',
       body: JSON.stringify({
         user: userData,
         orderedItems: ctx.items
       })
     });
+
+    setIsSubmitting(false);
+    setDidSubmit(true);
+    ctx.clearCart();
   };
 
   const cartItems = (
@@ -60,14 +67,35 @@ const Cart = (props) => {
     </div>
   );
 
-  return (
-    <Modal onClick={props.onHideCart}>
+  const cartModalContent = (
+    <>
       {cartItems}
       <div className={styles.total}>
         <span>Total Amount</span>
         <span>{totalAmount}</span>
       </div>
       {isCheckout ? <Checkout onConfirm={sumbitOrderHandler} onCancel={props.onHideCart} /> : modalActions}
+    </>
+  );
+
+  const isSubmittingModalContent = <p>Sending order data...</p>;
+  
+  const didSubmitModalContent = (
+    <>
+      <p>Successfully sent the order!</p>
+      <div className={styles.actions}>
+        <button className={styles.button} onClick={props.onHideCart}>
+          Close
+        </button>
+    </div>
+    </>
+  );
+
+  return (
+    <Modal onClick={props.onHideCart}>
+      {!isSubmitting && !didSubmit && cartModalContent}
+      {isSubmitting && isSubmittingModalContent}
+      {didSubmit && didSubmitModalContent}
     </Modal>
   );
 };
