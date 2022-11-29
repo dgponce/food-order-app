@@ -26,6 +26,16 @@ const Cart = (props) => {
     setIsCheckout(true);
   }
 
+  const sumbitOrderHandler = (userData) => {
+    fetch('https://react-http-d2b79-default-rtdb.firebaseio.com/react-http-d2b79/orders.json', {
+      method: 'POST',
+      body: JSON.stringify({
+        user: userData,
+        orderedItems: ctx.items
+      })
+    });
+  };
+
   const cartItems = (
     <ul className={styles['cart-items']}>
       {ctx.items.map((item) => (
@@ -57,7 +67,7 @@ const Cart = (props) => {
         <span>Total Amount</span>
         <span>{totalAmount}</span>
       </div>
-      {isCheckout ? <Checkout onCancel={props.onHideCart} /> : modalActions}
+      {isCheckout ? <Checkout onConfirm={sumbitOrderHandler} onCancel={props.onHideCart} /> : modalActions}
     </Modal>
   );
 };
